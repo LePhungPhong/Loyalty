@@ -1,0 +1,47 @@
+[
+  {
+    "_id": "LOG-TX-20251027-0001-EARN",
+    "customer": { "id": "CUS-20251027-0001", "name": "Phùng Phong" },
+    "type": "EARN",
+    "points": 1700,
+    "title": "Earned from transaction TX-20251027-0001",
+    "transaction": {
+      "code": "TX-20251027-0001",
+      "total": 1700000,
+      "store": "HN001",
+      "channel": "WEB"
+    },
+    "occurredAt": { "$date": "2025-10-22T08:30:00Z" },
+    "createdAt": { "$date": "2025-10-22T08:30:00Z" }
+  },
+  {
+    "_id": "LOG-TX-20251027-0002-EARN",
+    "customer": { "id": "CUS-20251027-0002", "name": "Nguyễn Thảo" },
+    "type": "EARN",
+    "points": 400,
+    "title": "Earned from transaction TX-20251027-0002",
+    "transaction": {
+      "code": "TX-20251027-0002",
+      "total": 400000,
+      "store": "HCM002",
+      "channel": "APP"
+    },
+    "occurredAt": { "$date": "2025-10-24T13:00:00Z" },
+    "createdAt": { "$date": "2025-10-24T13:00:00Z" }
+  },
+  {
+    "_id": "LOG-TX-20251027-0003-EARN",
+    "customer": { "id": "CUS-20251027-0003", "name": "Lê Minh Tuấn" },
+    "type": "EARN",
+    "points": 5300,
+    "title": "Earned from transaction TX-20251027-0003",
+    "transaction": {
+      "code": "TX-20251027-0003",
+      "total": 5300000,
+      "store": "DN001",
+      "channel": "POS"
+    },
+    "occurredAt": { "$date": "2025-10-25T14:15:00Z" },
+    "createdAt": { "$date": "2025-10-25T14:15:00Z" }
+  }
+]

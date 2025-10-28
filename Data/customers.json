@@ -1,0 +1,38 @@
+[
+  {
+    "_id": "CUS-20251027-0001",
+    "fullName": "Phùng Phong",
+    "email": "phung.phong@example.com",
+    "phone": "0909123456",
+    "membership": {
+      "tier": "GOLD",
+      "availablePoints": 3200,
+      "lifetimeEarned": 6200
+    },
+    "createdAt": { "$date": "2025-10-20T08:00:00Z" }
+  },
+  {
+    "_id": "CUS-20251027-0002",
+    "fullName": "Nguyễn Thảo",
+    "email": "thaonguyen@example.com",
+    "phone": "0988123123",
+    "membership": {
+      "tier": "SILVER",
+      "availablePoints": 1200,
+      "lifetimeEarned": 2000
+    },
+    "createdAt": { "$date": "2025-10-21T10:00:00Z" }
+  },
+  {
+    "_id": "CUS-20251027-0003",
+    "fullName": "Lê Minh Tuấn",
+    "email": "tuanle@example.com",
+    "phone": "0912345678",
+    "membership": {
+      "tier": "PLATINUM",
+      "availablePoints": 5200,
+      "lifetimeEarned": 15000
+    },
+    "createdAt": { "$date": "2025-10-22T09:00:00Z" }
+  }
+]

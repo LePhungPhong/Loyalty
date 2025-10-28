@@ -1,0 +1,45 @@
+[
+  {
+    "_id": "TX-20251027-0001",
+    "customer": { "id": "CUS-20251027-0001", "name": "Phùng Phong" },
+    "store": { "code": "HN001", "name": "Hà Nội" },
+    "channel": "WEB",
+    "items": [
+      {
+        "sku": "P1001",
+        "name": "Tai nghe Bluetooth",
+        "qty": 1,
+        "price": 500000
+      },
+      { "sku": "P1002", "name": "Bàn phím cơ", "qty": 1, "price": 1200000 }
+    ],
+    "subtotal": 1700000,
+    "pointsEarned": 1700,
+    "paidAt": { "$date": "2025-10-22T08:30:00Z" }
+  },
+  {
+    "_id": "TX-20251027-0002",
+    "customer": { "id": "CUS-20251027-0002", "name": "Nguyễn Thảo" },
+    "store": { "code": "HCM002", "name": "Hồ Chí Minh" },
+    "channel": "APP",
+    "items": [
+      { "sku": "P2001", "name": "Sách lập trình", "qty": 2, "price": 200000 }
+    ],
+    "subtotal": 400000,
+    "pointsEarned": 400,
+    "paidAt": { "$date": "2025-10-24T13:00:00Z" }
+  },
+  {
+    "_id": "TX-20251027-0003",
+    "customer": { "id": "CUS-20251027-0003", "name": "Lê Minh Tuấn" },
+    "store": { "code": "DN001", "name": "Đà Nẵng" },
+    "channel": "POS",
+    "items": [
+      { "sku": "P3001", "name": "Chuột gaming", "qty": 1, "price": 800000 },
+      { "sku": "P3002", "name": "Màn hình 27 inch", "qty": 1, "price": 4500000 }
+    ],
+    "subtotal": 5300000,
+    "pointsEarned": 5300,
+    "paidAt": { "$date": "2025-10-25T14:15:00Z" }
+  }
+]
