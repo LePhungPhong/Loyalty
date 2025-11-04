@@ -1,12 +1,15 @@
 import mongoose from "mongoose";
 
-const itemSchema = new mongoose.Schema({
-  sku: String,
-  name: String,
-  qty: Number,
-  price: Number,
-  category: String,
-}, { _id: false });
+const itemSchema = new mongoose.Schema(
+  {
+    sku: String,
+    name: String,
+    qty: Number,
+    price: Number,
+    category: String,
+  },
+  { _id: false }
+);
 
 const transactionSchema = new mongoose.Schema({
   _id: { type: String, required: true },
@@ -29,6 +32,6 @@ const transactionSchema = new mongoose.Schema({
   },
   paidAt: Date,
   createdAt: { type: Date, default: () => new Date() },
-}, { _id: false });
+});
 
 export default mongoose.model("Transaction", transactionSchema);

@@ -38,7 +38,7 @@ export const listCustomers = async (req, res) => {
     if (cached) return res.json(JSON.parse(cached));
 
     const customers = await Customer.find(query).sort(sortObj).lean();
-    await redisClient.setEx(cacheKey, 60, JSON.stringify(customers));
+    await redisClient.setEx(cacheKey, 600, JSON.stringify(customers));
 
     res.json(customers);
   } catch (err) {

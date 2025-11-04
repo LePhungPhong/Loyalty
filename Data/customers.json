@@ -7,9 +7,13 @@
     "membership": {
       "tier": "GOLD",
       "availablePoints": 3200,
-      "lifetimeEarned": 6200
+      "lifetimeEarned": 6200,
+      "tierSince": "2025-10-20T08:00:00.000Z",
+      "tierExpireAt": "2026-10-20T08:00:00.000Z"
     },
-    "createdAt": { "$date": "2025-10-20T08:00:00Z" }
+    "createdAt": "2025-10-20T08:00:00.000Z",
+    "updatedAt": "2025-10-20T08:00:00.000Z",
+    "__v": 0
   },
   {
     "_id": "CUS-20251027-0002",
@@ -19,9 +23,13 @@
     "membership": {
       "tier": "SILVER",
       "availablePoints": 1200,
-      "lifetimeEarned": 2000
+      "lifetimeEarned": 2000,
+      "tierSince": "2025-10-21T10:00:00.000Z",
+      "tierExpireAt": "2026-10-21T10:00:00.000Z"
     },
-    "createdAt": { "$date": "2025-10-21T10:00:00Z" }
+    "createdAt": "2025-10-21T10:00:00.000Z",
+    "updatedAt": "2025-10-21T10:00:00.000Z",
+    "__v": 0
   },
   {
     "_id": "CUS-20251027-0003",
@@ -31,8 +39,12 @@
     "membership": {
       "tier": "PLATINUM",
       "availablePoints": 5200,
-      "lifetimeEarned": 15000
+      "lifetimeEarned": 15000,
+      "tierSince": "2025-10-22T09:00:00.000Z",
+      "tierExpireAt": "2026-10-22T09:00:00.000Z"
     },
-    "createdAt": { "$date": "2025-10-22T09:00:00Z" }
+    "createdAt": "2025-10-22T09:00:00.000Z",
+    "updatedAt": "2025-10-22T09:00:00.000Z",
+    "__v": 0
   }
 ]

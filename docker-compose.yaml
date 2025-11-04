@@ -1,48 +1,14 @@
-version: "3.9"
+version: "3.8"
 
 services:
-  backend:
-    build: ./BE
-    container_name: loyalty-backend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./BE/.env
-    environment:
-      - MONGO_URL=mongodb://localhost:27017/loyalty
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - mongo
-      - redis
-    volumes:
-      - ./BE:/app
-
-  frontend:
-    build:
-      context: ./FE
-      args:
-        - VITE_API_URL=http://localhost:3000/api
-    ports:
-      - "5173:80"
-    depends_on:
-      - backend
-
-  mongo:
-    image: mongo:7
-    container_name: loyalty-mongo
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
   redis:
-    image: redis:7
-    container_name: loyalty-redis
-    restart: unless-stopped
+    image: redis:7-alpine
+    container_name: redis-server
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
 
 volumes:
-  mongo_data:
+  redis-data:
