@@ -2,45 +2,15 @@ import PointsHistory from "../models/pointsHistory.model.js";
 import Customer from "../models/customer.model.js";
 import redisClient from "../config/redis.js";
 
-// =============================
-// Earn points (cộng điểm khi mua hàng)
-// =============================
-export const earnPoints = async (req, res) => {
+const safeClearCache = async (pattern) => {
   try {
-    const { customerId, subtotal } = req.body;
-
-    if (!customerId || !subtotal)
-      return res.status(400).json({ message: "Missing required fields" });
-
-    // Tính điểm từ subtotal (1 điểm cho mỗi 1000đ)
-    const points = Math.floor(subtotal / 1000);
-
-    // Gọi hàm tự động xử lý cộng điểm + cập nhật hạng
-    const customer = await Customer.adjustPoints(
-      customerId,
-      points,
-      "EARN",
-      `Earned from purchase (₫${subtotal.toLocaleString()})`
-    );
-
-    // Xóa cache Redis
-    await redisClient.delPattern("customers:list*");
-
-    res.json({
-      message: "Points earned successfully",
-      points,
-      newTier: customer.membership.tier,
-      newBalance: customer.membership.availablePoints,
-    });
-  } catch (err) {
-    console.error("earnPoints error:", err);
-    res.status(500).json({ message: err.message });
-  }
+    if (redisClient.isOpen) {
+      const keys = await redisClient.keys(pattern);
+      if (keys.length > 0) await redisClient.del(keys);
+    }
+  } catch (e) {}
 };
 
-// =============================
-// Burn points (khách hàng dùng điểm)
-// =============================
 export const burnPoints = async (req, res) => {
   try {
     const { customerId, points, title } = req.body;
@@ -48,22 +18,16 @@ export const burnPoints = async (req, res) => {
     if (!customerId || !points)
       return res.status(400).json({ message: "Missing required fields" });
 
-    const customer = await Customer.findById(customerId);
-    if (!customer)
-      return res.status(404).json({ message: "Customer not found" });
-
-    if (customer.membership.availablePoints < points)
-      return res.status(400).json({ message: "Not enough points" });
-
-    // Gọi hàm trừ điểm + cập nhật hạng
+    // Logic chính nằm trong Model (MongoDB), không phụ thuộc Redis
     const updatedCustomer = await Customer.adjustPoints(
       customerId,
-      points,
+      Number(points),
       "BURN",
-      title || "Redeemed points"
+      { title: title || "Redeemed Points" }
     );
 
-    await redisClient.delPattern("customers:list*");
+    // Xóa cache (Optional)
+    await safeClearCache("customers:list*");
 
     res.json({
       message: "Points burned successfully",
@@ -71,61 +35,47 @@ export const burnPoints = async (req, res) => {
       newBalance: updatedCustomer.membership.availablePoints,
     });
   } catch (err) {
-    console.error("burnPoints error:", err);
-    res.status(500).json({ message: err.message });
+    const status = err.message === "Not enough points" ? 400 : 500;
+    res.status(status).json({ message: err.message });
   }
 };
 
-// =============================
-// Expire points (điểm hết hạn)
-// =============================
 export const expirePoints = async (req, res) => {
   try {
     const { customerId, points } = req.body;
-
     if (!customerId || !points)
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.status(400).json({ message: "Missing data" });
 
-    const customer = await Customer.findById(customerId);
-    if (!customer)
-      return res.status(404).json({ message: "Customer not found" });
-
-    // Gọi hàm trừ điểm + ghi log + kiểm tra hạng
     const updatedCustomer = await Customer.adjustPoints(
       customerId,
-      points,
+      Number(points),
       "EXPIRE",
-      "Points expired"
+      { title: "Points Expired" }
     );
 
-    await redisClient.delPattern("customers:list*");
+    await safeClearCache("customers:list*");
 
     res.json({
       message: "Points expired successfully",
-      newTier: updatedCustomer.membership.tier,
       newBalance: updatedCustomer.membership.availablePoints,
     });
   } catch (err) {
-    console.error("expirePoints error:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// =============================
-// Lấy danh sách lịch sử điểm
-// =============================
 export const listPoints = async (req, res) => {
   try {
     const { customerId } = req.query;
     const filter = customerId ? { "customer.id": customerId } : {};
 
+    // Query trực tiếp DB
     const pointsHistory = await PointsHistory.find(filter)
       .sort({ createdAt: -1 })
       .lean();
 
     res.json(pointsHistory);
   } catch (err) {
-    console.error("listPoints error:", err);
     res.status(500).json({ message: err.message });
   }
 };

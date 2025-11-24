@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import PointsHistory from "./pointsHistory.model.js";
 
 const customerSchema = new mongoose.Schema(
   {
@@ -6,101 +7,87 @@ const customerSchema = new mongoose.Schema(
     fullName: String,
     phone: String,
     email: String,
-    dob: String,
-    gender: String,
+    dob: String, // Ngày sinh
+    gender: String, // Giới tính
     address: {
       city: String,
       country: String,
     },
     membership: {
-      tier: { type: String, default: "BRONZE" },
+      tier: { type: String, default: "SILVER" },
       availablePoints: { type: Number, default: 0 },
-      pendingPoints: { type: Number, default: 0 },
       lifetimeEarned: { type: Number, default: 0 },
-      tierSince: { type: Date, default: () => new Date() },
-      tierExpireAt: {
-        type: Date,
-        default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-      },
+      tierSince: { type: Date, default: Date.now },
     },
-    segments: [String],
-    consents: {
-      marketing: { type: Boolean, default: false },
-      sms: { type: Boolean, default: false },
-      email: { type: Boolean, default: false },
-    },
-    status: { type: String, default: "active" },
   },
   { timestamps: true }
 );
 
-// =====================
-// Static method: cộng/trừ điểm + ghi lịch sử
-// =====================
+// --- LOGIC TẬP TRUNG: CỘNG TRỪ ĐIỂM & UPDATE TIER ---
 customerSchema.statics.adjustPoints = async function (
   customerId,
   points,
   type,
-  title = ""
+  historyData
 ) {
-  const customer = await this.findById(customerId);
-  if (!customer) throw new Error("Customer not found");
+  const Customer = this;
 
-  // Bảo đảm membership tồn tại
-  if (!customer.membership) {
-    customer.membership = {
-      tier: "BRONZE",
-      availablePoints: 0,
-      lifetimeEarned: 0,
-      tierSince: new Date(),
-      tierExpireAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    };
+  if (points < 0) throw new Error("Points must be positive");
+
+  const currentCustomer = await Customer.findById(customerId);
+  if (!currentCustomer) throw new Error("Customer not found");
+
+  if (
+    (type === "BURN" || type === "EXPIRE") &&
+    currentCustomer.membership.availablePoints < points
+  ) {
+    throw new Error("Not enough points");
   }
 
-  // --- Cộng / Trừ điểm ---
-  if (type === "EARN") {
-    customer.membership.availablePoints += points;
-    customer.membership.lifetimeEarned += points;
-  } else if (type === "BURN" || type === "EXPIRE") {
-    customer.membership.availablePoints = Math.max(
-      0,
-      customer.membership.availablePoints - points
-    );
-  }
+  let pointDelta = type === "EARN" ? points : -points;
+  let lifetimeDelta = type === "EARN" ? points : 0;
 
-  // --- Cập nhật tier ---
-  const total = customer.membership.lifetimeEarned;
-  const oldTier = customer.membership.tier;
-  let newTier = "BRONZE";
+  // Update Atomic bằng $inc
+  const updatedCustomer = await Customer.findOneAndUpdate(
+    { _id: customerId },
+    {
+      $inc: {
+        "membership.availablePoints": pointDelta,
+        "membership.lifetimeEarned": lifetimeDelta,
+      },
+      $set: { updatedAt: new Date() },
+    },
+    { new: true }
+  );
 
+  // Tính hạng
+  const total = updatedCustomer.membership.lifetimeEarned;
+  let newTier = "SILVER";
   if (total >= 5000) newTier = "PLATINUM";
   else if (total >= 2000) newTier = "GOLD";
-  else if (total >= 1) newTier = "SILVER";
 
-  if (newTier !== oldTier) {
-    customer.membership.tier = newTier;
-    customer.membership.tierSince = new Date();
+  if (newTier !== updatedCustomer.membership.tier) {
+    updatedCustomer.membership.tier = newTier;
+    updatedCustomer.membership.tierSince = new Date();
+    await updatedCustomer.save();
   }
 
-  await customer.save();
-
-  // --- Ghi lịch sử ---
-  const PointsHistory = mongoose.model("PointsHistory");
+  // Ghi lịch sử
   await PointsHistory.create({
-    _id: `LOG-${customerId}-${Date.now()}-${type}`,
+    _id: `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     customer: {
-      id: customer._id,
-      name: customer.fullName,
-      tier: customer.membership.tier,
+      id: updatedCustomer._id,
+      name: updatedCustomer.fullName,
+      tier: updatedCustomer.membership.tier,
     },
-    type,
-    points: type === "EARN" ? points : -points,
-    title: title || (type === "EARN" ? "Earned points" : "Points updated"),
+    type: type,
+    points: points,
+    title: historyData.title || `${type} Points`,
+    transaction: historyData.transaction || {},
     occurredAt: new Date(),
-    createdAt: new Date(),
   });
 
-  return customer;
+  return updatedCustomer;
 };
 
 export default mongoose.model("Customer", customerSchema);
