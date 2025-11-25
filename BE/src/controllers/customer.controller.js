@@ -51,7 +51,6 @@ export const listCustomers = async (req, res) => {
     }
 
     // 2. Nếu không có Cache (hoặc Redis chết) -> Query MongoDB
-    // console.log("🐢 Hit Database"); // Debug
     const query = search
       ? {
           $or: [

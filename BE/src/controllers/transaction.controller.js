@@ -4,7 +4,6 @@ import PointsHistory from "../models/pointsHistory.model.js";
 import { validationResult } from "express-validator";
 import redisClient from "../config/redis.js";
 
-// Helper: Xóa cache an toàn
 const safeClearCache = async (pattern) => {
   try {
     if (redisClient.isOpen) {
@@ -12,11 +11,71 @@ const safeClearCache = async (pattern) => {
       if (keys.length > 0) await redisClient.del(keys);
     }
   } catch (e) {
-    // Redis lỗi thì bỏ qua, không làm fail giao dịch
-    console.warn("⚠️ Redis clean failed, ignoring...");
+    console.warn("Redis clean failed, ignoring...");
   }
 };
 
+// =============================
+// LIST TRANSACTIONS
+// =============================
+export const listTransactions = async (req, res) => {
+  try {
+    const {
+      search = "",
+      startDate,
+      endDate,
+      minTotal,
+      maxTotal,
+      sortBy = "paidAt",
+      order = "desc",
+    } = req.query;
+
+    // 1. Xây dựng Query cơ bản
+    const query = {};
+
+    // 2. Tìm kiếm theo từ khóa (Mã GD, Tên KH)
+    if (search) {
+      query.$or = [
+        { _id: { $regex: search, $options: "i" } },
+        { "customer.name": { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // 3. Lọc theo khoảng thời gian (paidAt)
+    if (startDate || endDate) {
+      query.paidAt = {};
+      if (startDate) query.paidAt.$gte = new Date(startDate);
+      if (endDate) {
+        // Đặt endDate là cuối ngày đó (23:59:59)
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.paidAt.$lte = end;
+      }
+    }
+
+    // 4. Lọc theo tổng tiền (subtotal)
+    if (minTotal || maxTotal) {
+      query.subtotal = {};
+      if (minTotal) query.subtotal.$gte = Number(minTotal);
+      if (maxTotal) query.subtotal.$lte = Number(maxTotal);
+    }
+
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    // Query Database
+    const transactions = await Transaction.find(query).sort({
+      [sortBy]: sortOrder,
+    });
+
+    return res.json(transactions);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+// =============================
+// CREATE TRANSACTION
+// =============================
 export const createTransaction = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty())
@@ -26,7 +85,6 @@ export const createTransaction = async (req, res) => {
     const { customer: custInfo, subtotal, paidAt } = req.body;
     const newTxId = `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    // Logic truy vấn DB (Vẫn chạy bình thường dù Redis chết)
     const customerDoc = await Customer.findById(custInfo.id);
     if (!customerDoc)
       return res.status(404).json({ message: "Customer not found" });
@@ -58,7 +116,6 @@ export const createTransaction = async (req, res) => {
       }
     );
 
-    // Thử xóa cache, nếu lỗi thì thôi, vẫn trả về success cho client
     await safeClearCache("customers:list*");
 
     return res.status(201).json({
@@ -72,28 +129,9 @@ export const createTransaction = async (req, res) => {
   }
 };
 
-export const listTransactions = async (req, res) => {
-  try {
-    const { search = "", sortBy = "paidAt", order = "desc" } = req.query;
-    const query = search
-      ? {
-          $or: [
-            { _id: { $regex: search, $options: "i" } },
-            { "customer.name": { $regex: search, $options: "i" } },
-          ],
-        }
-      : {};
-
-    // Trực tiếp query DB cho Transaction (thường ít cache hơn Customer)
-    const transactions = await Transaction.find(query).sort({
-      [sortBy]: order === "asc" ? 1 : -1,
-    });
-    return res.json(transactions);
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
+// =============================
+// GET & DELETE
+// =============================
 export const getTransaction = async (req, res) => {
   const tx = await Transaction.findById(req.params.id);
   if (!tx) return res.status(404).json({ message: "Not found" });
