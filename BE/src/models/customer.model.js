@@ -7,8 +7,8 @@ const customerSchema = new mongoose.Schema(
     fullName: String,
     phone: String,
     email: String,
-    dob: String, // Ngày sinh
-    gender: String, // Giới tính
+    dob: String,
+    gender: String,
     address: {
       city: String,
       country: String,
@@ -23,7 +23,7 @@ const customerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// --- LOGIC TẬP TRUNG: CỘNG TRỪ ĐIỂM & UPDATE TIER ---
+// --- CỘNG TRỪ ĐIỂM & UPDATE TIER ---
 customerSchema.statics.adjustPoints = async function (
   customerId,
   points,

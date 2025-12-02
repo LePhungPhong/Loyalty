@@ -1,70 +1,74 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import API from "../api"
-import CustomerModal from "./customer-modal"
-import { toast } from "react-toastify"
-import { Search, Plus, Edit2, Trash2, Users } from "lucide-react"
+import { useEffect, useState } from "react";
+import API from "../api";
+import CustomerModal from "./customer-modal";
+import { toast } from "react-toastify";
+import { Search, Plus, Edit2, Trash2, Users } from "lucide-react";
 
 export default function Customers() {
-  const [customers, setCustomers] = useState([])
-  const [q, setQ] = useState("")
-  const [sortBy, setSortBy] = useState("createdAt")
-  const [order, setOrder] = useState("desc")
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
+  const [customers, setCustomers] = useState([]);
+  const [q, setQ] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [order, setOrder] = useState("desc");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   const load = async () => {
     try {
-      const data = await API.get("/customers?" + new URLSearchParams({ search: q, sortBy, order }))
-      setCustomers(Array.isArray(data) ? data : [])
+      const data = await API.get(
+        "/customers?" + new URLSearchParams({ search: q, sortBy, order })
+      );
+      setCustomers(Array.isArray(data) ? data : []);
     } catch (err) {
-      toast.error("Không thể tải dữ liệu khách hàng")
-      setCustomers([])
+      toast.error("Không thể tải dữ liệu khách hàng");
+      setCustomers([]);
     }
-  }
+  };
 
   useEffect(() => {
-    load()
-  }, [q, sortBy, order])
+    load();
+  }, [q, sortBy, order]);
 
   const openCreate = () => {
-    setEditing(null)
-    setModalOpen(true)
-  }
+    setEditing(null);
+    setModalOpen(true);
+  };
   const onEdit = (c) => {
-    setEditing(c)
-    setModalOpen(true)
-  }
+    setEditing(c);
+    setModalOpen(true);
+  };
   const onDelete = async (c) => {
-    if (!confirm("Bạn chắc chắn muốn xóa khách hàng này?")) return
+    if (!confirm("Bạn chắc chắn muốn xóa khách hàng này?")) return;
     try {
-      const res = await API.delete(`/customers/${c._id}`)
-      toast.success("✓ Đã xóa khách hàng")
-      load()
+      const res = await API.delete(`/customers/${c._id}`);
+      toast.success("✓ Đã xóa khách hàng");
+      load();
     } catch {
-      toast.error("Xóa thất bại")
+      toast.error("Xóa thất bại");
     }
-  }
+  };
 
   const submit = async (data) => {
     try {
-      if (editing) await API.put(`/customers/${editing._id}`, data)
-      else await API.post("/customers", data)
-      toast.success("✓ Lưu thành công")
-      setModalOpen(false)
-      load()
+      if (editing) await API.put(`/customers/${editing._id}`, data);
+      else await API.post("/customers", data);
+      toast.success("✓ Lưu thành công");
+      setModalOpen(false);
+      load();
     } catch {
-      toast.error("Lưu thất bại")
+      toast.error("Lưu thất bại");
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Khách hàng</h2>
-          <p className="text-sm muted mt-1">Quản lý danh sách khách hàng thân thiết ({customers.length})</p>
+          <p className="text-sm muted mt-1">
+            Quản lý danh sách khách hàng thân thiết ({customers.length})
+          </p>
         </div>
         <button
           onClick={openCreate}
@@ -107,21 +111,40 @@ export default function Customers() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-dark-border/50">
-                <th className="px-4 py-3 text-left font-semibold text-primary">Mã KH</th>
-                <th className="px-4 py-3 text-left font-semibold text-primary">Họ tên</th>
-                <th className="px-4 py-3 text-left font-semibold text-primary">Email</th>
-                <th className="px-4 py-3 text-center font-semibold text-primary">Điểm</th>
-                <th className="px-4 py-3 text-center font-semibold text-primary">Hạng</th>
-                <th className="px-4 py-3 text-center font-semibold text-primary">Thao tác</th>
+                <th className="px-4 py-3 text-left font-semibold text-primary">
+                  Mã KH
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-primary">
+                  Họ tên
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-primary">
+                  Email
+                </th>
+                <th className="px-4 py-3 text-center font-semibold text-primary">
+                  Điểm
+                </th>
+                <th className="px-4 py-3 text-center font-semibold text-primary">
+                  Hạng
+                </th>
+                <th className="px-4 py-3 text-center font-semibold text-primary">
+                  Thao tác
+                </th>
               </tr>
             </thead>
             <tbody>
               {Array.isArray(customers) && customers.length > 0 ? (
                 customers.map((c) => (
-                  <tr key={c._id} className="border-b border-dark-border/30 hover:bg-primary/5 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">{c._id.slice(-4)}</td>
+                  <tr
+                    key={c._id}
+                    className="border-b border-dark-border/30 hover:bg-primary/5 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                      {c._id}
+                    </td>
                     <td className="px-4 py-3 font-semibold">{c.fullName}</td>
-                    <td className="px-4 py-3 text-sm muted">{c.email || "—"}</td>
+                    <td className="px-4 py-3 text-sm muted">
+                      {c.email || "—"}
+                    </td>
                     <td className="px-4 py-3 text-center">
                       <span className="inline-block px-2 py-1 bg-primary/20 text-primary-light font-semibold rounded">
                         {c.membership?.availablePoints || 0}
@@ -158,7 +181,9 @@ export default function Customers() {
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Users className="w-8 h-8 muted/40" />
                       <span className="text-sm muted">
-                        {customers ? "Chưa có khách hàng nào" : "Đang tải dữ liệu..."}
+                        {customers
+                          ? "Chưa có khách hàng nào"
+                          : "Đang tải dữ liệu..."}
                       </span>
                     </div>
                   </td>
@@ -169,7 +194,12 @@ export default function Customers() {
         </div>
       </div>
 
-      <CustomerModal open={modalOpen} initial={editing} onClose={() => setModalOpen(false)} onSubmit={submit} />
+      <CustomerModal
+        open={modalOpen}
+        initial={editing}
+        onClose={() => setModalOpen(false)}
+        onSubmit={submit}
+      />
     </div>
-  )
+  );
 }

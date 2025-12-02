@@ -1,7 +1,6 @@
 import Customer from "../models/customer.model.js";
 import redisClient from "../config/redis.js";
 
-// --- HELPER: Redis An Toàn (Circuit Breaker) ---
 // Nếu Redis chết, hàm này trả về null ngay lập tức, không gây lỗi
 const safeGetCache = async (key) => {
   try {
